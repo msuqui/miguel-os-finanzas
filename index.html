@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b0b0f">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Miguel OS · Finanzas</title>
+<style>
+:root{--bg:#0b0b0f;--card:#15151b;--card2:#1c1c23;--text:#f5f5f7;--muted:#9898a3;--line:#2a2a32;--accent:#8b7cff;--green:#42d392;--orange:#ffb454;--red:#ff6678}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif}body{padding-bottom:92px}
+.app{max-width:720px;margin:auto;padding:env(safe-area-inset-top) 16px 0}
+header{padding:18px 2px 12px;display:flex;justify-content:space-between;align-items:center}
+.kicker{font-size:13px;color:var(--muted)}h1{font-size:28px;margin:3px 0 0;letter-spacing:-.6px}
+.icon{width:40px;height:40px;border-radius:14px;background:var(--card);display:grid;place-items:center;border:1px solid var(--line);font-size:18px}
+.view{display:none}.view.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin:10px 0}
+.hero{padding:22px;background:linear-gradient(145deg,#1a1925,#111117)}
+.label{font-size:13px;color:var(--muted)}.value{font-size:38px;font-weight:700;letter-spacing:-1.5px;margin:6px 0}
+.sub{font-size:13px;color:var(--green)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px}.metric .num{font-size:21px;font-weight:650;margin-top:6px}
+.section-title{font-size:18px;font-weight:650;margin:22px 3px 9px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}
+.rowleft{display:flex;gap:11px;align-items:center}.dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}.dot.g{background:var(--green)}.dot.o{background:var(--orange)}
+.small{font-size:12px;color:var(--muted)}.right{text-align:right}
+.progress{height:9px;background:#292931;border-radius:99px;overflow:hidden;margin-top:12px}.bar{height:100%;background:var(--accent);border-radius:99px}
+.chart{height:150px;display:flex;align-items:end;gap:7px;padding-top:15px}.barc{flex:1;background:var(--accent);opacity:.75;border-radius:7px 7px 2px 2px;min-height:4px}.chartlabels{display:flex;gap:7px}.chartlabels span{flex:1;text-align:center;font-size:10px;color:var(--muted)}
+button,input{font:inherit}button{border:0;color:var(--text);background:var(--card2);padding:11px 14px;border-radius:13px;font-weight:600}button.primary{background:var(--accent)}button.danger{color:var(--red)}
+input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:13px;color:var(--text);padding:12px;margin-top:6px;outline:none}
+.formrow{margin:13px 0}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:rgba(15,15,19,.94);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:10}
+.nav{max-width:720px;width:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:3px}.nav button{background:none;color:var(--muted);padding:8px 4px;font-size:11px}.nav button.active{color:var(--text);background:var(--card2);border-radius:13px}.navicon{font-size:18px;display:block;margin-bottom:2px}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#eee;color:#111;padding:11px 16px;border-radius:14px;font-size:13px;display:none;z-index:20;box-shadow:0 8px 30px #0008}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><div class="kicker">Miguel OS</div><h1 id="title">Finanzas</h1></div><div class="icon">€</div></header>
+
+<section id="inicio" class="view active">
+<div class="card hero"><div class="label">Patrimonio total</div><div class="value" id="networth">€36.329,69</div><div class="sub" id="netchange">Objetivo anual: €45.000</div>
+<div class="progress"><div class="bar" id="goalbar"></div></div></div>
+<div class="grid">
+<div class="metric"><div class="label">Nómina estimada</div><div class="num" id="payroll">€3.767</div><div class="small">octubre 2026</div></div>
+<div class="metric"><div class="label">VWCE / mes</div><div class="num" id="vwceMini">€350</div><div class="small">aportación fija</div></div>
+</div>
+<div class="section-title">Distribución</div><div class="card" id="allocation"></div>
+<div class="section-title">Evolución</div><div class="card"><div class="chart" id="chart"></div><div class="chartlabels" id="chartlabels"></div></div>
+</section>
+
+<section id="portfolio" class="view">
+<div class="section-title">Tu patrimonio</div><div class="card" id="portfolioList"></div>
+<div class="section-title">Objetivo</div><div class="card"><div class="label">Objetivo de patrimonio</div><div class="value" id="goalValue">€45.000</div><div class="small" id="goalText"></div><div class="progress"><div class="bar" id="goalbar2"></div></div></div>
+</section>
+
+<section id="dinero" class="view">
+<div class="section-title">Flujo mensual</div><div class="grid">
+<div class="metric"><div class="label">Ingresos ene–sep</div><div class="num">€25.576</div></div>
+<div class="metric"><div class="label">Media mensual</div><div class="num">€2.842</div></div>
+</div>
+<div class="card"><div class="row"><span>Gasto objetivo</span><b id="expensesText">€1.000</b></div><div class="row"><span>Capacidad teórica</span><b id="capacity">€1.842</b></div><div class="row"><span>Aportación VWCE</span><b id="vwceText">€350</b></div></div>
+<div class="section-title">Reglas actuales</div><div class="card"><div class="row"><span>Cuenta domiciliaciones</span><b>€400–450</b></div><div class="row"><span>Cuenta corriente</span><b>≈ €100</b></div><div class="row"><span>Remunerada Revolut</span><b>€10.621,89</b></div><div class="row"><span>Monefit</span><b>€14.435,52</b></div></div>
+</section>
+
+<section id="nomina" class="view">
+<div class="section-title">Nómina · Octubre 2026</div>
+<div class="card hero"><div class="label">Neto estimado actual</div><div class="value">€3.767,31</div><div class="sub">Periodo: 16/09 → 15/10</div></div>
+<div class="grid">
+<div class="metric"><div class="label">Bruto mensual</div><div class="num">€2.170,72</div></div>
+<div class="metric"><div class="label">Horas extra</div><div class="num">45,5 h</div></div>
+<div class="metric"><div class="label">Fin de semana</div><div class="num">5 días</div></div>
+<div class="metric"><div class="label">Dietas internacionales</div><div class="num">22</div></div>
+</div>
+<div class="section-title">Desglose estimado</div>
+<div class="card">
+<div class="row"><span>Salario base</span><b>€2.170,72</b></div>
+<div class="row"><span>Horas extra</span><b>€682,50</b></div>
+<div class="row"><span>Fin de semana</span><b>€500,00</b></div>
+<div class="row"><span>Dietas internacionales</span><b>€1.214,62</b></div>
+<div class="row"><span>Bruto estimado</span><b>€4.587,84</b></div>
+<div class="row"><span>Neto estimado</span><b>€3.767,31</b></div>
+</div>
+<div class="card"><div class="small">Los datos proceden de tu plantilla de cálculo de nómina de octubre. La estimación puede cambiar a medida que añadas horas, viajes o fines de semana.</div></div>
+</section>
+
+<section id="ajustes" class="view">
+<div class="section-title">Datos editables</div><div class="card">
+<div class="formrow"><label class="small">Patrimonio total</label><input id="fNet" type="number" step="0.01"></div>
+<div class="formrow"><label class="small">Objetivo</label><input id="fGoal" type="number" step="100"></div>
+<div class="formrow"><label class="small">Nómina estimada</label><input id="fPayroll" type="number" step="0.01"></div>
+<div class="formrow"><label class="small">Gasto mensual objetivo</label><input id="fExpenses" type="number" step="50"></div>
+<div class="formrow"><label class="small">Aportación VWCE</label><input id="fVwce" type="number" step="50"></div>
+<div class="actions"><button class="primary" onclick="saveSettings()">Guardar cambios</button><button onclick="resetSettings()">Restaurar datos iniciales</button></div>
+</div>
+<div class="section-title">Estado</div><div class="card"><div class="small">Los cambios se guardan en este dispositivo mediante almacenamiento local. No se envían a ningún servidor.</div></div>
+</section>
+</div>
+
+<div class="bottom"><div class="nav">
+<button class="active" onclick="show('inicio',this)"><span class="navicon">⌂</span>Inicio</button>
+<button onclick="show('portfolio',this)"><span class="navicon">◉</span>Portfolio</button>
+<button onclick="show('dinero',this)"><span class="navicon">↗</span>Dinero</button>
+<button onclick="show('nomina',this)"><span class="navicon">▣</span>Nómina</button>
+<button onclick="show('ajustes',this)"><span class="navicon">⚙</span>Ajustes</button>
+</div></div>
+<div class="toast" id="toast">Guardado</div>
+
+<script>
+const defaults={net:36329.69,goal:45000,payroll:3767.31,expenses:1000,vwce:350};
+const portfolio=[
+["Monefit",14435.52,"39.73%","o"],["Revolut remunerada",10621.89,"29.24%","g"],["VWCE",10477.26,"28.84%",""],["Commodities",395.02,"1.09%","o"],["Liquidez",400,"1.10%",""]
+];
+const hist=[30630.92,26873.40,29778.27,31298,34265.29,36329.69];
+const months=["Feb","Mar","Abr","May","Jun","Sep"];
+function data(){return JSON.parse(localStorage.getItem("miguelFin")||JSON.stringify(defaults))}
+function eur(n){return new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(n)}
+function render(){
+ let d=data(); document.getElementById("networth").textContent=eur(d.net);document.getElementById("payroll").textContent=eur(d.payroll);document.getElementById("vwceMini").textContent=eur(d.vwce);
+ document.getElementById("goalValue").textContent=eur(d.goal);document.getElementById("expensesText").textContent=eur(d.expenses);document.getElementById("vwceText").textContent=eur(d.vwce);
+ document.getElementById("capacity").textContent=eur(2841.73-d.expenses);
+ let pct=Math.min(100,d.net/d.goal*100);document.getElementById("goalbar").style.width=pct+"%";document.getElementById("goalbar2").style.width=pct+"%";document.getElementById("goalText").textContent=`${pct.toFixed(1)}% del objetivo · faltan ${eur(Math.max(0,d.goal-d.net))}`;
+ document.getElementById("allocation").innerHTML=portfolio.map(p=>`<div class="row"><div class="rowleft"><span class="dot ${p[3]}"></span><span>${p[0]}</span></div><div class="right"><b>${eur(p[1])}</b><div class="small">${p[2]}</div></div></div>`).join("");
+ document.getElementById("portfolioList").innerHTML=portfolio.map(p=>`<div class="row"><div class="rowleft"><span class="dot ${p[3]}"></span><span>${p[0]}</span></div><div class="right"><b>${eur(p[1])}</b><div class="small">${p[2]}</div></div></div>`).join("");
+ let max=Math.max(...hist);document.getElementById("chart").innerHTML=hist.map((v,i)=>`<div class="barc" style="height:${Math.max(8,v/max*100)}%"></div>`).join("");document.getElementById("chartlabels").innerHTML=months.map(x=>`<span>${x}</span>`).join("");
+ ["fNet","fGoal","fPayroll","fExpenses","fVwce"].forEach((id,i)=>document.getElementById(id).value=[d.net,d.goal,d.payroll,d.expenses,d.vwce][i]);
+}
+function show(id,btn){document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");window.scrollTo(0,0)}
+function saveSettings(){let d={net:+fNet.value,goal:+fGoal.value,payroll:+fPayroll.value,expenses:+fExpenses.value,vwce:+fVwce.value};localStorage.setItem("miguelFin",JSON.stringify(d));render();toast("Cambios guardados")}
+function resetSettings(){localStorage.removeItem("miguelFin");render();toast("Datos restaurados")}
+function toast(t){let x=document.getElementById("toast");x.textContent=t;x.style.display="block";setTimeout(()=>x.style.display="none",1500)}
+render();
+</script>
+</body></html>
